@@ -17,7 +17,7 @@ import datetime
 
 import pugsql
 
-if sys.version_info < (3,10):
+if sys.version_info < (3, 10):
     import importlib_resources as resources
 else:
     from importlib import resources
@@ -28,7 +28,7 @@ class MessageBox:
 
     def __init__(self, url):
 
-        src = resources.files('messagebox.sql.api') 
+        src = resources.files("messagebox.sql.api")
 
         with resources.as_file(src) as api:
             self.db = pugsql.module(api)
@@ -42,18 +42,18 @@ class MessageBox:
     def get_stream(self, name):
         """Return stream entry"""
 
-        return self.db.get_stream(name=name) 
+        return self.db.get_stream(name=name)
 
     def overview(self):
         """Return messagebox summary overview"""
 
         return self.db.overview()
 
-    #- Stream commands ----------------------------------------------------
+    # Stream commands ----------------------------------------------------
 
     def list_streams(self):
         """List streams"""
-        
+
         return self.db.list_streams()
 
     def create_stream(self, name):
@@ -68,7 +68,7 @@ class MessageBox:
         with self.db.transaction() as t:
             return self.db.del_stream(name=name)
 
-    #- Messages commands --------------------------------------------------
+    # Messages commands --------------------------------------------------
 
     def list_messages(self, name):
         """List messages in a stream"""
@@ -86,7 +86,7 @@ class MessageBox:
         with self.db.transaction() as t:
             return self.db.del_messages(name_pattern=name_pattern, ts=ts)
 
-    #- Single message commands --------------------------------------------
+    # Single message commands --------------------------------------------
 
     def get_message(self, name, position):
         """Return a message from a stream"""
@@ -105,7 +105,7 @@ class MessageBox:
         contents = open(payload_filename).read()
 
         with self.db.transaction() as t:
-            return self.db.post_message(name=name, ts=ts, payload=contents) 
+            return self.db.post_message(name=name, ts=ts, payload=contents)
 
     def del_message(self, name, position):
         """Delete a message from a stream at a given position"""
@@ -118,5 +118,3 @@ class MessageBox:
 
         with self.db.transaction() as t:
             return self.db.del_message_range(name=name, start=start_pos, stop=stop_pos)
-
-
