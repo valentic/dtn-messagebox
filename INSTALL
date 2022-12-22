@@ -1,0 +1,29 @@
+=============================================================================
+DTN Message Box Installation
+=============================================================================
+
+:Author:    Todd Valentic
+:Contact:   todd.valentic@gmail.com
+:Revision:  1.0.0 
+:Date:      Dec 16, 2022
+
+.. contents::
+    :backlinks: none
+    :depth: 1
+
+1. Introduction
+=============================================================================
+
+3. Database Setup 
+=============================================================================
+
+    createdb messagebox
+    psql messagebox -f $PACKAGEDIR/sql/tables/messagebox.sql
+
+    (note, this will drop any existing tables and data)
+
+
+    
+    
+
+    

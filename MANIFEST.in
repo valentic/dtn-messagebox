@@ -1,0 +1,5 @@
+include CHANGES.txt LICENSE INSTALL Makefile
+global-exclude *.pyc
+graft src/messagebox/sql
+graft bin
+recursive-include src/messagebox/sql *
