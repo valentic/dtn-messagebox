@@ -59,13 +59,13 @@ class MessageBox:
     def create_stream(self, name):
         """Create a new stream"""
 
-        with self.db.transaction() as t:
+        with self.db.transaction() as _t:
             return self.db.create_stream(name=name)
 
     def del_stream(self, name):
         """Delet a stream"""
 
-        with self.db.transaction() as t:
+        with self.db.transaction() as _t:
             return self.db.del_stream(name=name)
 
     # Messages commands --------------------------------------------------
@@ -83,7 +83,7 @@ class MessageBox:
     def del_messages(self, name_pattern, ts):
         """Delete messages from streams since ts"""
 
-        with self.db.transaction() as t:
+        with self.db.transaction() as _t:
             return self.db.del_messages(name_pattern=name_pattern, ts=ts)
 
     # Single message commands --------------------------------------------
@@ -102,19 +102,21 @@ class MessageBox:
         """Post a new message from a file to a stream"""
 
         ts = datetime.datetime.now(datetime.timezone.utc)
-        contents = open(payload_filename).read()
 
-        with self.db.transaction() as t:
+        with open(payload_filename, "r", encoding="utf8") as payload:
+            contents = payload.read()
+
+        with self.db.transaction() as _t:
             return self.db.post_message(name=name, ts=ts, payload=contents)
 
     def del_message(self, name, position):
         """Delete a message from a stream at a given position"""
 
-        with self.db.transaction() as t:
+        with self.db.transaction() as _t:
             return self.db.del_message(name=name, position=position)
 
     def del_message_range(self, name, start_pos, stop_pos):
         """Delete a message from a stream between positions"""
 
-        with self.db.transaction() as t:
+        with self.db.transaction() as _t:
             return self.db.del_message_range(name=name, start=start_pos, stop=stop_pos)

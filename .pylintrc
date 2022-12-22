@@ -1,0 +1,29 @@
+[BASIC]
+
+# Allow for names < 3 characters
+good-names-rgxs=^[_a-z][_a-z0-9]?$
+
+# Allow classes with few methods
+min-public-methods=0
+
+[DESIGN]
+max-parents=15
+
+[MESSAGES CONTROL]
+disable=
+    too-many-instance-attributes
+
+[TYPECHECK]
+generated-members=  get_stream, 
+                    overview, 
+                    list_streams,
+                    create_stream,
+                    del_stream,
+                    list_messages,
+                    list_messages_ts,
+                    del_messages,
+                    get_message,
+                    get_next_message,
+                    post_message,
+                    del_message,
+                    del_message_range
