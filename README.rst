@@ -4,28 +4,44 @@ Message Box
 An experiment in using a SQL database as a usenet-like server.
 
 
-Installing during development
------------------------------
+Command Line Usage
+------------------
 
-    During development, you can install the package into a virtual environment
-    and continue editing::
+mbctl --help
+    Show options 
 
-        https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs
+mbctl overview 
+    Display a table of all messages
 
-        pip install -e ${SRCDIR}
+mbctl stream list
+    List all stream names
+    
+mbctl stream create <stream_name>
+    Create a new stream
+    
+mbctl stream del <stream_name>
+    Delete a stream
 
-        where SRCDIR is something like $BASEDIR/datatransport/v3/datatransport
+mbctl messages new <stream_name> <ts>
+    List messages in stream since ts
+    
+mbctl messages list <stream_name>
+    List all messages (times/position/id) in stream
 
-    To install devel and test optional dependencies:
+mbctl messages del <stream_name> <ts>
+    Delete messages in stream older than ts
 
-        pip install -r ${SRCDIR}[devel,build]
+mbctl message get <stream_name> <position>
+    Retrieve message from stream at position
 
-    To check PEP8 compliance, use pycodestyle::
-        
-        https://pypi.org/project/pycodestyle/2.2.0/
+mbctl message get-next <stream_name> <position>
+    Retrieve the next message from stream at position
+    
+mbctl message post <stream_name> <filename>
+    Post the contents of filename to a stream
+    
+mbctl message del <stream_name> <position> [end_position]
+    Delete a message or range of messages from a stream
 
-        pip install pycodestyle
-
-        pycodestyle --show-source --show-pep8 ${SOURCEFILE}
 
 

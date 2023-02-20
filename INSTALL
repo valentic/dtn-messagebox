@@ -14,7 +14,7 @@ DTN Message Box Installation
 1. Introduction
 =============================================================================
 
-3. Database Setup 
+2. Database Setup 
 =============================================================================
 
     createdb messagebox
@@ -22,8 +22,30 @@ DTN Message Box Installation
 
     (note, this will drop any existing tables and data)
 
+3. Development Setup 
+=============================================================================
+    
+    During development, you can install the package into a virtual environment
+    and continue editing::
 
-    
-    
+        https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs
+
+        pip install -e $SRCDIR
+
+        where SRCDIR is something like $BASEDIR/MessageBox/v3/datatransport
+
+    To install devel and test optional dependencies:
+
+        pip install -r ${SRCDIR}[devel,build]
+
+    To check PEP8 compliance, use pycodestyle::
+        
+        https://pypi.org/project/pycodestyle/2.2.0/
+
+        pip install pycodestyle
+
+        pycodestyle --show-source --show-pep8 ${SOURCEFILE}
+
+
 
     
