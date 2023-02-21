@@ -43,6 +43,9 @@ mbctl message post <stream_name> <filename>
 mbctl message del <stream_name> <position> [end_position]
     Delete a message or range of messages from a stream
 
+mbctl message has <id> 
+    Test if message id is in database 
+
 
 Python API
 ----------
