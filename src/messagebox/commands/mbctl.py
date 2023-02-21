@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """MessageBox control program"""
 
+import sys
+
 import click
+import sqlalchemy
 import texttable as tt
 
 import messagebox
@@ -184,7 +187,6 @@ def del_messages(name, ts):
     result = mb.del_messages(name, ts)
     click.echo(result)
 
-
 # Single message commands ------------------------------------------------
 
 
@@ -258,6 +260,22 @@ def del_message(name, position, endposition):
         mb.del_message(name, position)
         click.echo(f"Deleted message at {position}")
 
+@message.command("has")
+@click.argument("message_id")
+def has_message(message_id):
+    """Check if a message with id exists""" 
+
+    try:
+        result = mb.has_message(message_id)
+    except sqlalchemy.exc.DataError:
+        click.echo("Invalid ID: %s" % message_id)
+        sys.exit(2) 
+
+    if result:
+        click.echo('True')
+    else:
+        click.echo('False')
+        sys.exit(1) 
 
 def main():
     """Main command starting point"""

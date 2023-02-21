@@ -44,4 +44,53 @@ mbctl message del <stream_name> <position> [end_position]
     Delete a message or range of messages from a stream
 
 
+Python API
+----------
+
+has_stream(name)
+    Test if stream exists
+
+get_stream(name)
+    Return stream entry
+
+overview()
+    Return summary overview
+
+list_streams()
+    List streams
+
+create_stream(name)
+    Create a new stream
+
+del_stream(name)
+    Delete a new stream
+
+list_messages(name)
+    List messages in a stream
+
+list_messages_ts(name, ts)
+    List new messages since ts
+
+del messages(name_pattern, ts)
+    Delete from multiple streams since ts
+
+get_message(name, position)
+    Return a message from a stream
+
+get_next_message(name, position)
+    Return the next message from a stream
+
+post_message(name, filename)
+    Post a new message froma file to a stream
+
+del_message(name, position)
+    Delete a message from stream
+
+del_message_range(name, start_position, end_position)
+    Delete a range of messages from a stream
+
+has_message(id)
+    Check if message id exists 
+
+
 

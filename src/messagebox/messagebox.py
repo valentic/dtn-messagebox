@@ -120,3 +120,8 @@ class MessageBox:
 
         with self.db.transaction() as _t:
             return self.db.del_message_range(name=name, start=start_pos, stop=stop_pos)
+
+    def has_message(self, message_id):
+        """Check if message is in database"""
+        return self.db.has_message(message_id=message_id)
+
