@@ -26,7 +26,10 @@ else:
 class MessageBox:
     """MessageBox API"""
 
-    def __init__(self, url):
+    def __init__(self, url=None):
+        
+        if not url:
+            url="postgresql:///messagebox"
 
         src = resources.files("messagebox.sql.api")
 
@@ -98,7 +101,7 @@ class MessageBox:
 
         return self.db.get_next_message(name=name, position=position)
 
-    def post_message(self, name, payload_filename):
+    def post_message_from_file(self, name, payload_filename):
         """Post a new message from a file to a stream"""
 
         ts = datetime.datetime.now(datetime.timezone.utc)
@@ -108,6 +111,14 @@ class MessageBox:
 
         with self.db.transaction() as _t:
             return self.db.post_message(name=name, ts=ts, payload=contents)
+
+    def post_message(self, name, msg):
+        """Post a message to a stream"""
+
+        ts = datetime.datetime.now(datetime.timezone.utc)
+
+        with self.db.transaction() as _t:
+            return self.db.post_message(name=name, ts=ts, payload=msg.as_bytes())
 
     def del_message(self, name, position):
         """Delete a message from a stream at a given position"""

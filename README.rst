@@ -83,8 +83,8 @@ get_message(name, position)
 get_next_message(name, position)
     Return the next message from a stream
 
-post_message(name, filename)
-    Post a new message froma file to a stream
+post_message(name, msg)
+    Post a message to a stream
 
 del_message(name, position)
     Delete a message from stream
