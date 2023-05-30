@@ -33,8 +33,14 @@ class MessageBox:
 
         src = resources.files("messagebox.sql.api")
 
-        with resources.as_file(src) as api:
-            self.db = pugsql.module(api)
+        # this isn't really kosher...
+
+        filenames = list(src.iterdir())
+        apipath = filenames[0].parent
+
+        #with resources.as_file(src) as api:
+        #    self.db = pugsql.module(api)
+        self.db = pugsql.module(apipath)
 
         self.db.connect(url)
 
