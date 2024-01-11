@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "click",
     "psycopg2-binary",
-    "pugsql",
+    "sqlalchemy>=2",
     "texttable",
     "importlib_resources>1.3; python_version < '3.10'"
 ]
@@ -34,8 +34,7 @@ test = [
     'pyfakefs'
     ]
 devel = [
-    'pylint',
-    'black',
+    'ruff',
     'build'
     ]
 
@@ -57,3 +56,18 @@ addopts = [
     "--import-mode=importlib"
 ]
 
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E", 
+    # pyflakes
+    "F", 
+    # flake8-bugbear
+    "B", 
+    # isort
+    # I"
+    # flake8-simplify
+    "SIM", 
+    # docstyle
+    "D"
+]
