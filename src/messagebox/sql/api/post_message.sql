@@ -6,7 +6,7 @@ with cte as (
         where name = :name
     returning *
 )
-insert into messagebox(stream_id, stream_position, ts, payload)
+insert into message(stream_id, stream_position, ts, payload)
 select cte.id, cte.marker, :ts, :payload from cte
 
 

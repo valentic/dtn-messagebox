@@ -11,7 +11,7 @@ from
     stream
 left join lateral (
     select *
-    from messagebox as mb
+    from message as mb
     where stream_id = stream.id
     order by ts
     ) as messages on true

@@ -1,8 +1,5 @@
-DROP TABLE IF EXISTS messagebox;
+DROP TABLE IF EXISTS message;
 DROP TABLE IF EXISTS stream;
---DROP EXTENSION IF EXISTS "uuid-ossp";
-
---CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE stream (
     id BIGSERIAL PRIMARY KEY,
@@ -10,9 +7,8 @@ CREATE TABLE stream (
     marker BIGINT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE messagebox (
+CREATE TABLE message (
     id BIGSERIAL PRIMARY KEY,
-    --message_id UUID UNIQUE not NULL DEFAULT uuid_generate_v4(), 
     message_id UUID UNIQUE not NULL DEFAULT gen_random_uuid(), 
     stream_id BIGINT REFERENCES stream, 
     stream_position BIGINT not NULL,
@@ -21,8 +17,8 @@ CREATE TABLE messagebox (
 );
 
 CREATE INDEX IF NOT EXISTS stream_name_idx ON stream (name); 
-CREATE INDEX IF NOT EXISTS messagebox_message_id_idx ON messagebox (message_id);
-CREATE INDEX IF NOT EXISTS messagebox_message_ts_idx ON messagebox (ts);
-CREATE INDEX IF NOT EXISTS messagebox_message_stream_ts_idx ON messagebox (stream_id, ts);
+CREATE INDEX IF NOT EXISTS message_message_id_idx ON message (message_id);
+CREATE INDEX IF NOT EXISTS message_message_ts_idx ON message (ts);
+CREATE INDEX IF NOT EXISTS message_message_stream_ts_idx ON message (stream_id, ts);
 
 

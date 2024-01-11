@@ -1,6 +1,6 @@
 -- :name del_message :affected
 
-delete from messagebox
+delete from message
 where
     stream_id in (
         select id

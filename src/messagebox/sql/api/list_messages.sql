@@ -6,7 +6,7 @@ select
     ts,
     message_id
 from
-    messagebox as mb
+    message as mb
 join
     stream on mb.stream_id = stream.id
 where

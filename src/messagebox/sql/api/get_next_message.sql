@@ -7,7 +7,7 @@ select
     message_id,
     payload
 from
-    messagebox as mb
+    message as mb
 join
     stream on stream_id = stream.id
 where
