@@ -15,20 +15,15 @@
 #
 ##########################################################################
 
-import sys
-import datetime
-
-#from sqlalchemy import select, cast, func, delete, update, TIMESTAMP, Uuid, String
-
 import sqlalchemy as sa
 
-from .models import Stream, Message 
+from .models import Stream, Message
+
 
 class MessageBox:
     """MessageBox API"""
 
     def __init__(self, session):
-        
         self.session = session
 
     def has_stream(self, name):
@@ -40,24 +35,21 @@ class MessageBox:
         """Return stream entry matching name"""
 
         stmt = sa.select(Stream).where(Stream.name == name)
-        return self.session.scalar(stmt) 
+        return self.session.scalar(stmt)
 
     def overview(self):
         """Return messagebox summary overview"""
 
-        messages = (
-            sa.select(Message)
-            .lateral()
-        )
+        messages = sa.select(Message).lateral()
 
         stmt = (
             sa.select(
                 Stream.name,
-                sa.func.coalesce(
-                    sa.func.min(messages.c.stream_position),0).label("min_position"
+                sa.func.coalesce(sa.func.min(messages.c.stream_position), 0).label(
+                    "min_position"
                 ),
-                sa.func.coalesce(
-                    sa.func.max(messages.c.stream_position),0).label("max_position"
+                sa.func.coalesce(sa.func.max(messages.c.stream_position), 0).label(
+                    "max_position"
                 ),
                 sa.func.count(messages.c.stream_position).label("count"),
                 sa.func.min(messages.c.ts).label("min_ts"),
@@ -75,7 +67,7 @@ class MessageBox:
     def list_streams(self):
         """List streams"""
 
-        return self.session.scalars(sa.select(Stream)) 
+        return self.session.scalars(sa.select(Stream))
 
     def create_stream(self, name):
         """Create a new stream"""
@@ -93,7 +85,6 @@ class MessageBox:
 
         return stream
 
-
     # Messages commands --------------------------------------------------
 
     def list_messages(self, name):
@@ -104,7 +95,7 @@ class MessageBox:
             .join(Message.stream)
             .where(Stream.name == name)
             .order_by(Message.stream_position)
-            )
+        )
 
         return self.session.scalars(stmt)
 
@@ -113,10 +104,7 @@ class MessageBox:
 
         stmt = (
             sa.select(
-                Stream.name, 
-                Message.stream_position, 
-                Message.ts, 
-                Message.message_uuid
+                Stream.name, Message.stream_position, Message.ts, Message.message_uuid
             )
             .join(Message.stream)
             .where(Stream.name == name)
@@ -124,15 +112,12 @@ class MessageBox:
             .order_by(Message.stream_position)
         )
 
-        return self.session.scalars(q)
+        return self.session.scalars(stmt)
 
     def del_messages(self, name_pattern, ts):
         """Delete messages from streams since ts"""
 
-        stream_ids = (
-            sa.select(Stream.stream_id)
-            .where(Stream.name.like(name_pattern))
-        )
+        stream_ids = sa.select(Stream.stream_id).where(Stream.name.like(name_pattern))
 
         stmt = (
             sa.delete(Message)
@@ -199,42 +184,30 @@ class MessageBox:
         """Post a message to a stream"""
 
         return_args = [
-            Stream.stream_id, 
+            Stream.stream_id,
             Stream.marker,
-            sa.cast(payload, sa.String).label("payload")
+            sa.cast(payload, sa.String).label("payload"),
         ]
 
-        cols = [
-            "stream_id",
-            "stream_position",
-            "payload"
-        ]
+        cols = ["stream_id", "stream_position", "payload"]
 
         if ts:
-            return_args.append(
-                sa.cast(ts, sa.TIMESTAMP(timezone=True)).label("ts")
-            )
+            return_args.append(sa.cast(ts, sa.TIMESTAMP(timezone=True)).label("ts"))
             cols.append("ts")
 
         if message_uuid:
-            return_args.append(
-                sa.cast(message_uuid, sa.Uuid).label("message_uuid")
-            )
+            return_args.append(sa.cast(message_uuid, sa.Uuid).label("message_uuid"))
             cols.append("message_uuid")
 
         cte = (
             sa.update(Stream)
             .where(Stream.name == name)
-            .values(marker = Stream.marker+1)
+            .values(marker=Stream.marker + 1)
             .returning(*return_args)
             .cte()
         )
 
-        stmt = (
-            sa.insert(Message)
-            .from_select(cols, cte)
-            .returning(Message.message_uuid)
-        )
+        stmt = sa.insert(Message).from_select(cols, cte).returning(Message.message_uuid)
 
         return self.session.scalar(stmt)
 
@@ -248,7 +221,7 @@ class MessageBox:
             .where(Message.stream == stream)
             .where(Message.stream_position == position)
         )
-        
+
         self.session.execute(stmt)
 
     def del_message_range(self, name, first_position, last_position):
@@ -264,19 +237,15 @@ class MessageBox:
         )
 
         self.session.execute(stmt)
-             
+
     def get_message_from_uuid(self, message_uuid):
-        """Return message with matching uuid""" 
+        """Return message with matching uuid"""
 
-        stmt = (
-            sa.select(Message)
-            .where(Message.message_uuid == message_uuid)
-        )
+        stmt = sa.select(Message).where(Message.message_uuid == message_uuid)
 
-        return self.session.scalar(stmt) 
-           
+        return self.session.scalar(stmt)
+
     def has_message(self, message_uuid):
         """Check if message is in database"""
 
-        return not self.get_message_from_uuid(message_uuid) is None
-
+        return self.get_message_from_uuid(message_uuid) is not None
