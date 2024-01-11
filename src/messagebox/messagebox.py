@@ -1,5 +1,15 @@
-#!/usr/bin/env python
-"""MessageBox"""
+"""A MessageBox client class.
+
+...
+
+Example:
+-------
+>>> from messagebox import db, MessageBox
+>>> session = db.Session()
+>>> mb = MessageBox(session)
+>>> mb.overview()
+
+"""
 
 ##########################################################################
 #
@@ -21,25 +31,23 @@ from .models import Stream, Message
 
 
 class MessageBox:
-    """MessageBox API"""
+    """The MessageBox API."""
 
     def __init__(self, session):
+        """Initialize MessageBox instance."""
         self.session = session
 
     def has_stream(self, name):
-        """Test if stream exists"""
-
+        """Test if stream exists."""
         return self.get_stream(name) is not None
 
     def get_stream(self, name):
-        """Return stream entry matching name"""
-
+        """Return stream entry matching name."""
         stmt = sa.select(Stream).where(Stream.name == name)
         return self.session.scalar(stmt)
 
     def overview(self):
-        """Return messagebox summary overview"""
-
+        """Return messagebox summary overview."""
         messages = sa.select(Message).lateral()
 
         stmt = (
@@ -65,19 +73,16 @@ class MessageBox:
     # Stream commands ----------------------------------------------------
 
     def list_streams(self):
-        """List streams"""
-
+        """List streams."""
         return self.session.scalars(sa.select(Stream))
 
     def create_stream(self, name):
-        """Create a new stream"""
-
+        """Create a new stream."""
         stream = Stream(name=name)
         self.session.add(stream)
 
     def del_stream(self, name):
-        """Delete a stream"""
-
+        """Delete a stream."""
         stmt = sa.select(Stream).where(Stream.name == name)
         stream = self.session.scalar(stmt)
 
@@ -88,8 +93,7 @@ class MessageBox:
     # Messages commands --------------------------------------------------
 
     def list_messages(self, name):
-        """List messages in a stream"""
-
+        """List messages in a stream."""
         stmt = (
             sa.select(Message)
             .join(Message.stream)
@@ -100,8 +104,7 @@ class MessageBox:
         return self.session.scalars(stmt)
 
     def list_messages_ts(self, name, ts):
-        """List new messages since ts"""
-
+        """List new messages since ts."""
         stmt = (
             sa.select(
                 Stream.name, Message.stream_position, Message.ts, Message.message_uuid
@@ -115,8 +118,7 @@ class MessageBox:
         return self.session.scalars(stmt)
 
     def del_messages(self, name_pattern, ts):
-        """Delete messages from streams since ts"""
-
+        """Delete messages from streams since ts."""
         stream_ids = sa.select(Stream.stream_id).where(Stream.name.like(name_pattern))
 
         stmt = (
@@ -130,8 +132,7 @@ class MessageBox:
     # Single message commands --------------------------------------------
 
     def get_message(self, name, position):
-        """Return a message from a stream"""
-
+        """Return a message from a stream."""
         stream = self.get_stream(name)
         stmt = (
             sa.select(Message)
@@ -142,8 +143,7 @@ class MessageBox:
         return self.session.scalar(stmt)
 
     def first_message(self, name):
-        """Return the first message from a stream"""
-
+        """Return the first message from a stream."""
         stream = self.get_stream(name)
         stmt = (
             sa.select(Message)
@@ -155,8 +155,7 @@ class MessageBox:
         return self.session.scalar(stmt)
 
     def next_message(self, name, position):
-        """Return the next message from a stream"""
-
+        """Return the next message from a stream."""
         stream = self.get_stream(name)
         stmt = (
             sa.select(Message)
@@ -168,21 +167,18 @@ class MessageBox:
         return self.session.scalar(stmt)
 
     def post_message_from_email(self, name, email, **kw):
-        """Post a new message from a file to a stream"""
-
+        """Post a new message from a file to a stream."""
         return self.post_message(name, email.as_string(), **kw)
 
     def post_message_from_file(self, name, filename, **kw):
-        """Post a new message from a file to a stream"""
-
+        """Post a new message from a file to a stream."""
         with open(filename, "r", encoding="utf8") as f:
             payload = f.read()
 
         return self.post_message(name, payload, **kw)
 
     def post_message(self, name, payload, ts=None, message_uuid=None):
-        """Post a message to a stream"""
-
+        """Post a message to a stream."""
         return_args = [
             Stream.stream_id,
             Stream.marker,
@@ -212,8 +208,7 @@ class MessageBox:
         return self.session.scalar(stmt)
 
     def del_message(self, name, position):
-        """Delete a message from a stream at a given position"""
-
+        """Delete a message from a stream at a given position."""
         stream = self.get_stream(name)
 
         stmt = (
@@ -225,8 +220,7 @@ class MessageBox:
         self.session.execute(stmt)
 
     def del_message_range(self, name, first_position, last_position):
-        """Delete a message from a stream between positions"""
-
+        """Delete a message from a stream between positions."""
         stream = self.get_stream(name)
 
         stmt = (
@@ -239,13 +233,11 @@ class MessageBox:
         self.session.execute(stmt)
 
     def get_message_from_uuid(self, message_uuid):
-        """Return message with matching uuid"""
-
+        """Return message with matching uuid."""
         stmt = sa.select(Message).where(Message.message_uuid == message_uuid)
 
         return self.session.scalar(stmt)
 
     def has_message(self, message_uuid):
-        """Check if message is in database"""
-
+        """Check if message is in database."""
         return self.get_message_from_uuid(message_uuid) is not None

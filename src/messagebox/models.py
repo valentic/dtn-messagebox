@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Database Models"""
+"""Database Models."""
 
 ###########################################################################
 #
@@ -15,7 +15,7 @@
 import datetime
 import uuid
 
-from sqlalchemy import String, ForeignKey, BigInteger, DateTime, Uuid
+from sqlalchemy import ForeignKey, BigInteger, DateTime, Uuid
 from sqlalchemy import Index, func, FetchedValue, text, MetaData
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,23 +29,30 @@ from .db import engine
 
 
 def create_all():
-    """Create all tables"""
+    """Create all tables."""
     Model.metadata.create_all(engine)
 
 
 def drop_all():
-    """Drop all tables"""
+    """Drop all tables."""
     Model.metadata.drop_all(engine)
 
-class Model(DeclarativeBase):
 
-    metadata = MetaData(naming_convention=({
-        "ix": "ix_%(column_0_label)s",
-        "uq": "uq_%(table_name)s_%(column_0_name)s",
-        "ck": "ck_%(table_name)s_%(constraint_name)s",
-        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-        "pk": "pk_%(table_name)s",
-    }))
+class Model(DeclarativeBase):
+    """Base class for data models."""
+
+    metadata = MetaData(
+        naming_convention=(
+            {
+                "ix": "ix_%(column_0_label)s",
+                "uq": "uq_%(table_name)s_%(column_0_name)s",
+                "ck": "ck_%(table_name)s_%(constraint_name)s",
+                "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+                "pk": "pk_%(table_name)s",
+            }
+        )
+    )
+
 
 # --------------------------------------------------------------------------
 #   Tables
@@ -53,6 +60,8 @@ class Model(DeclarativeBase):
 
 
 class Message(Model):
+    """Message table."""
+
     __tablename__ = "message"
     __table_args__ = (Index("ix_message_stream_id_ts", "stream_id", "ts"),)
 
@@ -73,10 +82,16 @@ class Message(Model):
     stream: Mapped["Stream"] = relationship(back_populates="messages")
 
     def __repr__(self):
-        return f"Message({self.message_id}, {self.ts}, {self.message_uuid}, {self.stream_position})"
+        """Return a string representation of the message."""
+        return (
+            f"Message({self.message_id}, {self.ts}, "
+            f"{self.message_uuid}, {self.stream_position})"
+        )
 
 
 class Stream(Model):
+    """Stream table."""
+
     __tablename__ = "stream"
 
     stream_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -88,4 +103,5 @@ class Stream(Model):
     )
 
     def __repr__(self):
+        """Return a string representation of the stream."""
         return f"Stream({self.stream_id}, {self.name}, {self.marker})"

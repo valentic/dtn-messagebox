@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Database Interaction"""
+"""Database Interaction."""
 
 ###########################################################################
 #
-#   Database Interaction 
+#   Database Interaction
 #
 #   Needs postgresql postgresql-server sqlalchemy (2.x)
 #
@@ -25,4 +25,3 @@ debug = os.environ.get("MESSAGEBOX_DEBUG", "0").lower() in ["1", "true"]
 url = os.environ.get("MESSAGEBOX_URL", "postgresql:///messagebox")
 engine = create_engine(url, echo=debug)
 Session = sessionmaker(engine)
-
