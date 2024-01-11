@@ -13,7 +13,7 @@
 #
 ##########################################################################
 
-import datetime
+from datetime import datetime, timezone
 import functools
 import sys
 import uuid
@@ -40,10 +40,10 @@ def format_ts(ts):
 def as_datetime(ts):
     """Datetime from ISO string"""
 
-    dt = datetime.datetime.fromisoformat(ts)
+    dt = datetime.fromisoformat(ts)
 
     if not dt.tzinfo:
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        dt = dt.replace(tzinfo=timezone.utc)
 
     return dt
 
@@ -69,7 +69,7 @@ def pass_mb(func):
 
 
 @click.group()
-@click.option("--database", envvar="MESSAGEBOX_URL", default="postgresql:///messagebox2")
+@click.option("--database", envvar="MESSAGEBOX_URL", default="postgresql:///messagebox")
 @click.option("--debug/--no-debug", envvar="MESSAGEBOX_DEBUG", default=False)
 @click.pass_context
 def cli(ctx, database, debug):
@@ -340,12 +340,12 @@ def post_message(mb, name, payload_filename):
 
 @message.command("forward")
 @click.argument("name")
-@click.argument("ts", type=datetime.datetime.fromisoformat)
+@click.argument("ts", type=datetime.fromisoformat)
 @click.argument("message_uuid", type=uuid.UUID)
 @click.argument("payload_filename")
 @pass_mb
 def post_message(mb, name, ts, message_uuid, payload_filename):
-    """Post an exaiting message to a stream"""
+    """Post an existing message to a stream"""
 
     if not mb.has_stream(name):
         click.echo("The stream does not exist")
