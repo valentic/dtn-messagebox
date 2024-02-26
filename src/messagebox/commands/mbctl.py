@@ -19,6 +19,7 @@ import sys
 import uuid
 
 import click
+import prefixed
 import texttable as tt
 
 from sqlalchemy import create_engine
@@ -36,6 +37,15 @@ def format_ts(ts):
         return ""
 
     return ts.strftime("%Y-%m-%d %H:%M:%S")
+
+def format_bytes(num):
+    """Format bytes"""
+
+    if num is None:
+        return ""
+
+    return f"{prefixed.Float(num):!.2h}B"
+    
 
 def as_datetime(ts):
     """Datetime from ISO string"""
@@ -80,8 +90,9 @@ def cli(ctx, database, debug):
     ctx.obj = ContextObject(session) 
 
 @cli.command()
+@click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
 @pass_mb
-def overview(mb):
+def overview(mb, as_bytes):
     """MessageBox overview"""
 
     results = mb.overview()
@@ -90,16 +101,90 @@ def overview(mb):
 
     tb.set_deco(tb.HEADER)
 
-    tb.header(["Stream", "Min", "Max", "Count", "Start (UTC)", "Stop (UTC)"])
-    tb.set_cols_dtype(["t", "i", "i", "i", format_ts, format_ts])
-    tb.set_cols_align(["l", "r", "r", "r", "c", "c"])
-    tb.set_header_align(["c", "r", "r", "r", "c", "c"])
+    if as_bytes:
+        format_size = "i"
+    else:
+        format_size = format_bytes
+
+    tb.header(["Stream", "Min", "Max", "Count", "Start (UTC)", "Stop (UTC)", "Total Size"])
+    tb.set_cols_dtype(["t", "i", "i", "i", format_ts, format_ts, format_size])
+    tb.set_cols_align(["l", "r", "r", "r", "c", "c", "r"])
+    tb.set_header_align(["c", "r", "r", "r", "c", "c", "c"])
     tb.set_max_width(0)
 
     for result in results:
         tb.add_row(result.values())
 
     click.echo(tb.draw())
+
+@cli.command()
+@click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
+@pass_mb
+def status(mb, as_bytes):
+    """MessageBox status"""
+
+    results = mb.status()
+
+    if as_bytes:
+        format_size = "i"
+    else:
+        format_size = format_bytes
+
+    # Database table
+
+    dbtb = tt.Texttable()
+
+    dbtb.set_deco(tt.Texttable.HEADER)
+
+    dbtb.header(["Database", "Size"])
+    dbtb.set_cols_dtype(["t", format_size])
+    dbtb.set_cols_align(["l", "r"])
+    dbtb.set_header_align(["c", "c"])
+    #dbtb.set_max_width(0)
+
+    dbtb.add_row([results["database"]["name"], results["database"]["size"]])
+
+    # Tables table
+
+    tb = tt.Texttable()
+
+    tb.set_deco(tt.Texttable.HEADER)
+
+    tb.header(["Table", "Rows", "Size"])
+    tb.set_cols_dtype(["t", "i", format_size])
+    tb.set_cols_align(["l", "r", "r"])
+    tb.set_header_align(["c", "c", "c"])
+    tb.set_max_width(0)
+
+    for table, info in results["table"].items():
+        tb.add_row([table, info["rows"], info["size"]])
+
+    # Index table
+
+    ixtb = tt.Texttable()
+
+    ixtb.set_deco(tt.Texttable.HEADER)
+
+    ixtb.header(["Table", "Index", "Size"])
+    ixtb.set_cols_dtype(["t", "t", format_size])
+    ixtb.set_cols_align(["l", "l", "r"])
+    ixtb.set_header_align(["c", "c", "c"])
+    ixtb.set_max_width(0)
+
+    for table, index_results in results["index"].items():
+        for index, size in index_results.items():
+            ixtb.add_row([table, index, size])
+
+    # Display
+
+    click.echo()
+    click.echo(dbtb.draw())
+    click.echo()
+    click.echo(tb.draw())
+    click.echo()
+    click.echo(ixtb.draw())
+    click.echo()
+
 
 
 # Stream commands --------------------------------------------------------
@@ -174,8 +259,9 @@ def messages():
 
 @messages.command("list")
 @click.argument("name")
+@click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
 @pass_mb
-def list_messages(mb, name):
+def list_messages(mb, name, as_bytes):
     """List messages in a stream"""
 
     if not mb.has_stream(name):
@@ -188,10 +274,12 @@ def list_messages(mb, name):
 
     tb.set_deco(tb.HEADER)
 
-    tb.header(["Stream", "Position", "Timestamp (UTC)", "Message UUID"])
-    tb.set_cols_dtype(["t", "i", format_ts, "t"])
-    tb.set_cols_align(["l", "r", "l", "l"])
-    tb.set_header_align(["c", "r", "c", "c"])
+    format_size = "i" if as_bytes else format_bytes
+
+    tb.header(["Stream", "Position", "Timestamp (UTC)", "Size", "Message UUID"])
+    tb.set_cols_dtype(["t", "i", format_ts, format_size, "t"])
+    tb.set_cols_align(["l", "r", "l", "r", "l"])
+    tb.set_header_align(["c", "r", "c", "c", "c"])
     tb.set_max_width(0)
 
     for result in results:
@@ -199,6 +287,7 @@ def list_messages(mb, name):
             result.stream.name,
             result.stream_position,
             result.ts,
+            result.payload_size,
             result.message_uuid
             ])
             

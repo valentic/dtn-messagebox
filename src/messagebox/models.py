@@ -78,6 +78,8 @@ class Message(Model):
         DateTime(timezone=True), server_default=func.now(), index=True
     )
     payload: Mapped[str]
+    payload_hash: Mapped[bytes] = mapped_column(index=True)
+    payload_size: Mapped[int]
 
     stream: Mapped["Stream"] = relationship(back_populates="messages")
 

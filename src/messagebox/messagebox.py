@@ -25,6 +25,7 @@ Example:
 #
 ##########################################################################
 
+import hashlib
 import sqlalchemy as sa
 
 from .models import Stream, Message
@@ -62,6 +63,7 @@ class MessageBox:
                 sa.func.count(messages.c.stream_position).label("count"),
                 sa.func.min(messages.c.ts).label("min_ts"),
                 sa.func.max(messages.c.ts).label("max_ts"),
+                sa.func.sum(messages.c.payload_size).label("size")
             )
             .outerjoin(messages)
             .group_by(Stream.stream_id)
@@ -69,6 +71,56 @@ class MessageBox:
         )
 
         return [row._mapping for row in self.session.execute(stmt)]
+
+    def status(self):
+        """Return messagebox database status."""
+
+        engine = self.session.bind
+        dbname = engine.url.database
+
+        dbsize_sql = sa.text("SELECT pg_database_size(:name)")
+
+        dbsize = self.session.scalar(dbsize_sql, {"name": dbname})
+
+        table_size_sql = sa.text("SELECT pg_total_relation_size(:name)")
+
+        tables = ["stream", "message"]
+
+        table_results = {}
+
+        for name in tables:
+            # We can only pass values as parameters, not table names.
+            # So dynamically create sql here
+            table_rows_sql = sa.text(f"SELECT count(*) from {name}")
+
+            size = self.session.scalar(table_size_sql, {"name": name})
+            rows = self.session.scalar(table_rows_sql)
+            table_results[name] = { "size": size, "rows": rows } 
+
+        indexes_sql = sa.text(
+                        "select tablename, indexname from pg_indexes "
+                        "where schemaname = 'public' "
+                        "order by tablename, indexname"
+                    )
+
+        indexes = self.session.execute(indexes_sql).all()
+
+        index_sizes = {}
+
+        for tablename, indexname in indexes:
+            if not tablename in index_sizes:
+                index_sizes[tablename] = {}
+            size = self.session.scalar(table_size_sql, {"name": indexname})
+            index_sizes[tablename][indexname] = size
+
+        return {
+            "database": {
+                "name": dbname,
+                "size": dbsize
+            },
+            "table": table_results,
+            "index": index_sizes,
+        }
 
     # Stream commands ----------------------------------------------------
 
@@ -179,13 +231,23 @@ class MessageBox:
 
     def post_message(self, name, payload, ts=None, message_uuid=None):
         """Post a message to a stream."""
+        payload_hash = hashlib.md5(payload.encode()).digest()
+
         return_args = [
             Stream.stream_id,
             Stream.marker,
             sa.cast(payload, sa.String).label("payload"),
+            sa.cast(payload_hash, sa.LargeBinary).label("hash"),
+            sa.cast(len(payload), sa.Integer).label("payload_size")
         ]
 
-        cols = ["stream_id", "stream_position", "payload"]
+        cols = [
+            "stream_id", 
+            "stream_position", 
+            "payload", 
+            "payload_hash", 
+            "payload_size"
+        ]
 
         if ts:
             return_args.append(sa.cast(ts, sa.TIMESTAMP(timezone=True)).label("ts"))
@@ -238,6 +300,21 @@ class MessageBox:
 
         return self.session.scalar(stmt)
 
-    def has_message(self, message_uuid):
-        """Check if message is in database."""
+    def has_message_uuid(self, message_uuid):
+        """Check if message with uuid is in database."""
         return self.get_message_from_uuid(message_uuid) is not None
+
+    def get_message_from_hash(self, ts, payload_hash):
+        """Return message with matching timestamp and payload hash."""
+        stmt = (
+            sa.select(Message)
+            .where(Message.payload_hash == payload_hash)
+            .where(Message.ts == ts)
+        )
+
+        return self.session.scalar(stmt)
+
+    def has_message_hash(self, ts, payload_hash):
+        """Check if message with timestamp and hash is in database."""
+        return self.get_message_from_hash(ts, payload_hash) is not None
+
