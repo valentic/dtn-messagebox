@@ -10,6 +10,9 @@
 #   2024-01-05  Todd Valentic
 #               Initial implementation.
 #
+#   2027-07-01  Todd Valentic
+#               Convert to MessageLane
+#
 ###########################################################################
 
 import os
@@ -20,8 +23,8 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv(".env")
 
-debug = os.environ.get("MESSAGEBOX_DEBUG", "0").lower() in ["1", "true"]
+debug = os.environ.get("MESSAGELANE_DEBUG", "0").lower() in ["1", "true"]
 
-url = os.environ.get("MESSAGEBOX_URL", "postgresql:///messagebox")
+url = os.environ.get("MESSAGELANE_URL", "postgresql:///messagelane")
 engine = create_engine(url, echo=debug)
 Session = sessionmaker(engine)

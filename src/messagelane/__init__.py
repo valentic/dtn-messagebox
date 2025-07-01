@@ -1,4 +1,4 @@
 from .metadata import __version__
 
-from .messagebox import MessageBox
+from .messagelane import MessageLane
 from .datamessage import DataMessage

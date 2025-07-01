@@ -1,4 +1,4 @@
--- :name create_stream :insert
+-- :name create_lane :insert
 
-insert into stream(name) values(:name)
+insert into lane(name) values(:name)
 

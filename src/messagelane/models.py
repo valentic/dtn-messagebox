@@ -10,6 +10,9 @@
 #   2024-01-05  Todd Valentic
 #               Initial implementation.
 #
+#   2025-07-01  Todd Valentic
+#               Convert to MessageLane (lane -> lane)
+#
 ###########################################################################
 
 import datetime
@@ -63,15 +66,15 @@ class Message(Model):
     """Message table."""
 
     __tablename__ = "message"
-    __table_args__ = (Index("ix_message_stream_id_ts", "stream_id", "ts"),)
+    __table_args__ = (Index("ix_message_lane_id_ts", "lane_id", "ts"),)
 
     message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     message_uuid: Mapped[uuid.UUID] = mapped_column(
         Uuid, server_default=text("gen_random_uuid()"), unique=True, index=True
     )
-    stream_id: Mapped[int] = mapped_column(ForeignKey("stream.stream_id"), index=True)
+    lane_id: Mapped[int] = mapped_column(ForeignKey("lane.lane_id"), index=True)
 
-    stream_position: Mapped[int] = mapped_column(
+    lane_position: Mapped[int] = mapped_column(
         BigInteger, server_default=FetchedValue()
     )
     ts: Mapped[datetime.datetime] = mapped_column(
@@ -81,29 +84,29 @@ class Message(Model):
     payload_hash: Mapped[bytes] = mapped_column(index=True)
     payload_size: Mapped[int]
 
-    stream: Mapped["Stream"] = relationship(back_populates="messages")
+    lane: Mapped["Lane"] = relationship(back_populates="messages")
 
     def __repr__(self):
         """Return a string representation of the message."""
         return (
             f"Message({self.message_id}, {self.ts}, "
-            f"{self.message_uuid}, {self.stream_position})"
+            f"{self.message_uuid}, {self.lane_position})"
         )
 
 
-class Stream(Model):
-    """Stream table."""
+class Lane(Model):
+    """Lane table."""
 
-    __tablename__ = "stream"
+    __tablename__ = "lane"
 
-    stream_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    lane_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(index=True, unique=True)
     marker: Mapped[int] = mapped_column(BigInteger, insert_default=0)
 
     messages: Mapped[list["Message"]] = relationship(
-        cascade="all, delete-orphan", back_populates="stream"
+        cascade="all, delete-orphan", back_populates="lane"
     )
 
     def __repr__(self):
-        """Return a string representation of the stream."""
-        return f"Stream({self.stream_id}, {self.name}, {self.marker})"
+        """Return a string representation of the lane."""
+        return f"Lane({self.lane_id}, {self.name}, {self.marker})"

@@ -2,9 +2,9 @@
 
 delete from message
 where
-    stream_id in (
+    lane_id in (
         select id
-        from stream
+        from lane
         where name like :name_pattern
         )
     and

@@ -1,17 +1,17 @@
--- :name list_messages_ts :many
+-- :name list_messages_after_ts :many
 
 select
-    stream.name as stream,
-    stream_position,
+    lane.name as lane,
+    lane_position,
     ts,
     message_id
 from
     message as mb
 join
-    stream on mb.stream_id = stream.id
+    lane on mb.lane_id = lane.id
 where
-    stream.name = :name
+    lane.name = :name
     and
     ts >= :ts
 order by
-    stream_position
+    lane_position

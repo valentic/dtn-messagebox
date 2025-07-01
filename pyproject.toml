@@ -1,22 +1,17 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-
-name = "messagebox"
+name = "messagelane"
 dynamic = ["version"]
-description = "SQL Message Box"
+description = "SQL Message Queue"
 readme = "README.rst"
-requires-python= ">= 3.9"
 license = { file = "LICENSE" }
+requires-python= ">= 3.9"
 authors = [
     { name= 'Todd Valentic', email='todd.valentic@gmail.com' }
 ]
 
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU Public License v3 (GPLv3)",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent"
 ]
 
@@ -30,28 +25,29 @@ dependencies = [
     "importlib_resources>1.3; python_version < '3.10'"
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project.optional-dependencies]
-test = [
+devel = [
+    'ruff',
     'pytest',
     'pyfakefs'
     ]
-devel = [
-    'ruff',
-    'build'
-    ]
 
 [project.urls]
-homepage="https://github.com/valentic/messagebox"
-repository="https://github.com/valentic/messagebox"
+homepage="https://github.com/valentic/messagelane"
+repository="https://github.com/valentic/messagelane"
 
 [project.scripts]
-    mbctl = "messagebox.commands.mbctl:main"
+    msglane = "messagelane.commands.msglane:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+#[tool.setuptools.packages.find]
+#where = ["src"]
 
-[tool.setuptools.dynamic]
-version = {attr = "messagebox.metadata.__version__"}
+[tool.hatch.version]
+path = "src/messagelane/metadata.py"
 
 [tool.pytest.ini_options]
 addopts = [

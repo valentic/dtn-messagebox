@@ -2,11 +2,11 @@
 
 delete from message
 where
-    stream_id in (
+    lane_id in (
         select id
-        from stream
+        from lane
         where name = :name
         )
     and
-    stream_position = :position 
+    lane_position = :position 
 

@@ -1,16 +1,16 @@
 -- :name get_message :one
 
 select
-    stream.name as stream,
-    stream_position,
+    lane.name as lane,
+    lane_position,
     ts,
     message_id,
     payload
 from
     message as mb
 join
-    stream on stream_id = stream.id
+    lane on lane_id = lane.id
 where
-    stream.name = :name
+    lane.name = :name
     and
-    stream_position = :position
+    lane_position = :position

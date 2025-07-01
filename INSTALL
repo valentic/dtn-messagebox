@@ -1,5 +1,5 @@
 =============================================================================
-DTN Message Box Installation
+MessageLane Installation
 =============================================================================
 
 :Author:    Todd Valentic
@@ -17,8 +17,8 @@ DTN Message Box Installation
 2. Database Setup 
 =============================================================================
 
-    createdb messagebox
-    psql messagebox -f $PACKAGEDIR/sql/tables/messagebox.sql
+    createdb messagelane
+    psql messagelane -f $PACKAGEDIR/sql/tables/messagelane.sql
 
     (note, this will drop any existing tables and data)
 

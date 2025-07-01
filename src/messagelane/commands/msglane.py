@@ -1,15 +1,18 @@
 #!/usr/bin/env python
-"""MessageBox control program"""
+"""MessageLane control program"""
 
 ##########################################################################
 #
-#   MessageBox command line interface
+#   MessageLane command line interface
 #
 #   2022-12-16  Todd Valentic
 #               Initial implementation
 #
 #   2024-01-06  Todd Valentic
 #               Updated for sqlalchemy 2 
+#
+#   2025-07-01  Todd Valentic
+#               Convert to MessageLane
 #
 ##########################################################################
 
@@ -25,7 +28,7 @@ import texttable as tt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import messagebox
+import messagelane
 
 # Utility functions ------------------------------------------------------
 
@@ -66,20 +69,20 @@ class ContextObject:
 
     def __init__(self, session):
         self.session = session
-        self.mb = messagebox.MessageBox(session)
+        self.msglane = messagelane.MessageLane(session)
 
-def pass_mb(func):
+def pass_msglane(func):
     @click.pass_obj
     @functools.wraps(func)
     def wrapper(opt, *args, **kw):
-        func(opt.mb, *args, **kw)
+        func(opt.msglane, *args, **kw)
     return wrapper
 
 # Base commands ---------------------------------------------------------
 
 
 @click.group()
-@click.option("--database", envvar="MESSAGEBOX_URL", default="postgresql:///messagebox")
+@click.option("--database", envvar="MESSAGEBOX_URL", default="postgresql:///messagelane")
 @click.option("--debug/--no-debug", envvar="MESSAGEBOX_DEBUG", default=False)
 @click.pass_context
 def cli(ctx, database, debug):
@@ -91,11 +94,11 @@ def cli(ctx, database, debug):
 
 @cli.command()
 @click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
-@pass_mb
-def overview(mb, as_bytes):
-    """MessageBox overview"""
+@pass_msglane
+def overview(msglane, as_bytes):
+    """MessageLane overview"""
 
-    results = mb.overview()
+    results = msglane.overview()
 
     tb = tt.Texttable()
 
@@ -119,11 +122,11 @@ def overview(mb, as_bytes):
 
 @cli.command()
 @click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
-@pass_mb
-def status(mb, as_bytes):
-    """MessageBox status"""
+@pass_msglane
+def status(msglane, as_bytes):
+    """MessageLane status"""
 
-    results = mb.status()
+    results = msglane.status()
 
     if as_bytes:
         format_size = "i"
@@ -197,11 +200,11 @@ def stream():
 
 
 @stream.command("list")
-@pass_mb
-def list_streams(mb):
+@pass_msglane
+def list_streams(msglane):
     """List stream names"""
 
-    results = mb.list_streams()
+    results = msglane.list_streams()
 
     tb = tt.Texttable()
 
@@ -221,30 +224,30 @@ def list_streams(mb):
 
 @stream.command("create")
 @click.argument("name")
-@pass_mb
-def create_stream(mb, name):
+@pass_msglane
+def create_stream(msglane, name):
     """Create a new stream"""
 
-    if mb.has_stream(name):
+    if msglane.has_stream(name):
         click.echo("The stream already exists")
         return
 
-    mb.create_stream(name)
+    msglane.create_stream(name)
 
     click.echo(f"Created stream {name}")
 
 
 @stream.command("del")
 @click.argument("name")
-@pass_mb
-def del_stream(mb, name):
+@pass_msglane
+def del_stream(msglane, name):
     """Delete a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    mb.del_stream(name)
+    msglane.del_stream(name)
 
     click.echo(f"Removed stream {name}")
 
@@ -260,15 +263,15 @@ def messages():
 @messages.command("list")
 @click.argument("name")
 @click.option("--as_bytes/--no-as_bytes", default=False, help="Display size as bytes")
-@pass_mb
-def list_messages(mb, name, as_bytes):
+@pass_msglane
+def list_messages(msglane, name, as_bytes):
     """List messages in a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    results = mb.list_messages(name)
+    results = msglane.list_messages(name)
 
     tb = tt.Texttable()
 
@@ -297,17 +300,17 @@ def list_messages(mb, name, as_bytes):
 @messages.command("new")
 @click.argument("name")
 @click.argument("ts")
-@pass_mb
-def new_messages(mb, name, ts):
+@pass_msglane
+def new_messages(msglane, name, ts):
     """List new messages in a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
     dt = as_datetime(ts) 
 
-    results = mb.list_messages_ts(name, dt)
+    results = msglane.list_messages_ts(name, dt)
 
     tb = tt.Texttable()
 
@@ -328,13 +331,13 @@ def new_messages(mb, name, ts):
 @messages.command("del")
 @click.argument("name")
 @click.argument("ts")
-@pass_mb
-def del_messages(mb, name, ts):
+@pass_msglane
+def del_messages(msglane, name, ts):
     """Delete old messages"""
 
     dt = as_datetime(ts)
 
-    result = mb.del_messages(name, dt)
+    result = msglane.del_messages(name, dt)
     click.echo(result)
 
 # Single message commands ------------------------------------------------
@@ -348,15 +351,15 @@ def message():
 @message.command("get")
 @click.argument("name")
 @click.argument("position", type=int)
-@pass_mb
-def get_message(mb, name, position):
+@pass_msglane
+def get_message(msglane, name, position):
     """Return a message at a given position in a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    result = mb.get_message(name, position)
+    result = msglane.get_message(name, position)
 
     if result:
         click.echo(result.payload)
@@ -365,11 +368,11 @@ def get_message(mb, name, position):
 
 @message.command("uuid")
 @click.argument("message_uuid", type=uuid.UUID)
-@pass_mb
-def get_message_from_uuid(mb, message_uuid):
+@pass_msglane
+def get_message_from_uuid(msglane, message_uuid):
     """Return a message with given uuid""" 
 
-    result = mb.get_message_from_uuid(message_uuid)
+    result = msglane.get_message_from_uuid(message_uuid)
 
     if result:
         click.echo(result.payload)
@@ -380,15 +383,15 @@ def get_message_from_uuid(mb, message_uuid):
 @message.command("next")
 @click.argument("name")
 @click.argument("position", type=int)
-@pass_mb
-def next_message(mb, name, position):
+@pass_msglane
+def next_message(msglane, name, position):
     """Return the next message from a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    result = mb.next_message(name, position)
+    result = msglane.next_message(name, position)
 
     if result:
         click.echo(result.stream_position)
@@ -397,15 +400,15 @@ def next_message(mb, name, position):
 
 @message.command("first")
 @click.argument("name")
-@pass_mb
-def first_message(mb, name):
+@pass_msglane
+def first_message(msglane, name):
     """Return the first message from a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    result = mb.first_message(name)
+    result = msglane.first_message(name)
 
     if result:
         click.echo(result.stream_position)
@@ -415,15 +418,15 @@ def first_message(mb, name):
 @message.command("post")
 @click.argument("name")
 @click.argument("payload_filename")
-@pass_mb
-def post_message(mb, name, payload_filename):
+@pass_msglane
+def post_message(msglane, name, payload_filename):
     """Post a new message to a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    result = mb.post_message_from_file(name, payload_filename)
+    result = msglane.post_message_from_file(name, payload_filename)
 
     click.echo(result)
 
@@ -432,15 +435,15 @@ def post_message(mb, name, payload_filename):
 @click.argument("ts", type=datetime.fromisoformat)
 @click.argument("message_uuid", type=uuid.UUID)
 @click.argument("payload_filename")
-@pass_mb
-def post_message(mb, name, ts, message_uuid, payload_filename):
+@pass_msglane
+def post_message(msglane, name, ts, message_uuid, payload_filename):
     """Post an existing message to a stream"""
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
-    result = mb.post_message_from_file(name, payload_filename, ts=ts, message_uuid=message_uuid)
+    result = msglane.post_message_from_file(name, payload_filename, ts=ts, message_uuid=message_uuid)
 
     click.echo(result)
 
@@ -450,28 +453,28 @@ def post_message(mb, name, ts, message_uuid, payload_filename):
 @click.argument("name")
 @click.argument("position", type=int)
 @click.argument("endposition", required=False, type=int)
-@pass_mb
-def del_message(mb, name, position, endposition):
+@pass_msglane
+def del_message(msglane, name, position, endposition):
     """Delete a messages from a stream""" 
 
-    if not mb.has_stream(name):
+    if not msglane.has_stream(name):
         click.echo("The stream does not exist")
         return
 
     if endposition:
-        mb.del_message_range(name, position, endposition)
+        msglane.del_message_range(name, position, endposition)
         click.echo(f"Deleted messages from {name}:{position}-{endposition}")
     else:
-        mb.del_message(name, position)
+        msglane.del_message(name, position)
         click.echo(f"Deleted message at {name}:{position}")
 
 @message.command("has")
 @click.argument("message_uuid", type=uuid.UUID)
-@pass_mb
-def has_message(mb, message_uuid):
+@pass_msglane
+def has_message(msglane, message_uuid):
     """Check if a message with message_uuid exists""" 
 
-    result = mb.has_message(message_uuid)
+    result = msglane.has_message(message_uuid)
 
     if result:
         click.echo('True')

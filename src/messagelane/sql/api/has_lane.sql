@@ -1,3 +1,3 @@
--- :name has_stream :one
+-- :name has_lane :one
 
-select * from stream where name = :name limit 1
+select * from lane where name = :name limit 1

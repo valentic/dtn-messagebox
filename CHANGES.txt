@@ -2,3 +2,8 @@
 
 	- Project start 
 
+2025-07-01  Todd Valentic
+    
+    - Change project name to messagelane (was messagebox)
+    - Update for uv usage
+

@@ -1,3 +1,3 @@
--- :name list_streams :many
+-- :name list_lanes :many
 
-select * from stream order by name
+select * from lane order by name

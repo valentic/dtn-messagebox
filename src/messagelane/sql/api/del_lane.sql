@@ -1,3 +1,3 @@
--- :name del_stream :affected
+-- :name del_lane :affected
 
-delete from stream where name = :name
+delete from lane where name = :name
